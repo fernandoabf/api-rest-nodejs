@@ -12,18 +12,6 @@ export async function transactionsRoutes(app: FastifyInstance) {
     };
   });
 
-  app.get('/:id', async (request) => {
-    const getTransactionParamsSchema = z.object({
-      id: z.string().uuid(),
-    });
-
-    const { id } = getTransactionParamsSchema.parse(request.params);
-
-    const transaction = await knex('transactions').where({ id }).first();
-
-    return transaction;
-  });
-
   app.post('/', async (request, reply) => {
     const createTransactionBodySchema = z.object({
       title: z.string(),
@@ -42,5 +30,26 @@ export async function transactionsRoutes(app: FastifyInstance) {
     });
 
     return reply.status(201).send();
+  });
+
+  app.get('/:id', async (request) => {
+    const getTransactionParamsSchema = z.object({
+      id: z.string().uuid(),
+    });
+
+    const { id } = getTransactionParamsSchema.parse(request.params);
+
+    const transaction = await knex('transactions').where({ id }).first();
+
+    return transaction;
+  });
+
+  app.get('/summary', async () => {
+    const summary = await knex('transactions')
+      // o 'as' e para renomear a coluna invés de ela vir {"summary":[{"sum(`amount`)":20000}]} vem {"summary":{"amount":20000}}
+      .sum('amount', { as: 'amount' })
+      .first();
+
+    return { summary };
   });
 }
